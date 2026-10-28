@@ -1,0 +1,52 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String     @id @default(uuid()) @db.Uuid
+  email        String     @unique @db.VarChar(320)
+  passwordHash String     @map("password_hash") @db.VarChar(255)
+  createdAt    DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt    DateTime   @updatedAt @map("updated_at") @db.Timestamptz(3)
+  categories   Category[]
+  expenses     Expense[]
+
+  @@map("users")
+}
+
+model Category {
+  id        String     @id @default(uuid()) @db.Uuid
+  userId    String     @map("user_id") @db.Uuid
+  name      String     @db.VarChar(80)
+  createdAt DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expenses  Expense[]
+
+  @@unique([userId, name])
+  @@index([userId])
+  @@map("categories")
+}
+
+model Expense {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  categoryId  String   @map("category_id") @db.Uuid
+  amountMinor Int      @map("amount_minor")
+  currency    String   @default("USD") @db.Char(3)
+  description String   @db.VarChar(500)
+  // All API timestamps are ISO-8601 instants; persisted in UTC.
+  occurredAt  DateTime @map("occurred_at") @db.Timestamptz(3)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category    Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+
+  @@index([userId, occurredAt])
+  @@index([userId, categoryId, occurredAt])
+  @@map("expenses")
+}

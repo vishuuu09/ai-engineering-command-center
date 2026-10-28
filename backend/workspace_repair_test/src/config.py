@@ -1,0 +1,2 @@
+
+DATABASE_URL = "postgresql://postgres:5432/app"

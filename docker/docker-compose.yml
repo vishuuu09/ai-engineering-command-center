@@ -1,0 +1,31 @@
+# syntax=docker/dockerfile:1
+version: "3.9"
+
+services:
+  ai-command-center:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    image: ai-engineering-command-center:latest
+    container_name: ai-command-center
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - LOG_LEVEL=INFO
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ../logs:/app/logs
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: 256M
+        reservations:
+          cpus: "0.25"
+          memory: 128M
